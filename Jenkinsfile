@@ -11,18 +11,17 @@ pipeline {
     }
 
     environment {
-        SONARQUBE_ENV = 'sonarserver'
-        PROJECT_KEY   = 'go-project'
-        PROJECT_NAME  = 'go-project'
-        SCANNER_HOME  = tool 'sonarqube8.0'
+        SONARQUBE_ENV = 'SonarQube'
+        PROJECT_KEY   = 'demo-jenkins'
+        PROJECT_NAME  = 'demo-jenkins'
+        SCANNER_HOME  = tool 'SonarScanner'
     }
 
     stages {
         stage('Checkout') {
             steps {
                 git branch: 'main',
-                    url: 'https://github.com/hamasfaa/demo-jenkins',
-                    credentialsId: 'jenkinsUser'
+                    url: 'https://github.com/kenziemhs/demo-jenkins.git'
             }
         }
 
