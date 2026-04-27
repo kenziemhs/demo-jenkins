@@ -16,7 +16,7 @@ pipeline {
             }
         }
 
-        stage('Parallel Build & Test') {
+        stage('Build and Test') {
             agent {
                 docker {
                     image 'golang:1.23-bookworm'
@@ -24,19 +24,28 @@ pipeline {
                     reuseNode true
                 }
             }
-            steps {
-                sh 'git config --global --add safe.directory ${WORKSPACE}'
-                sh 'go mod download'
-                
-                parallel(
-                    "Build": {
-                        sh 'go build -v ./...'
-                    },
-                    "Test": {
-                        sh 'go test ./... -v -coverprofile=coverage.out'
-                        sh 'chmod 777 coverage.out'
+            stages {
+                stage('Setup') {
+                    steps {
+                        sh 'git config --global --add safe.directory ${WORKSPACE}'
+                        sh 'go mod download'
                     }
-                )
+                }
+                stage('Parallel Execution') {
+                    parallel {
+                        stage('Build') {
+                            steps {
+                                sh 'go build -v ./...'
+                            }
+                        }
+                        stage('Test') {
+                            steps {
+                                sh 'go test ./... -v -coverprofile=coverage.out'
+                                sh 'chmod 777 coverage.out'
+                            }
+                        }
+                    }
+                }
             }
         }
 
