@@ -1,14 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            image 'golang:1.23-bookworm'
-            args '''-u root \
-                    -e HOME=/tmp \
-                    -e GOCACHE=/tmp/go-cache \
-                    -e GOPATH=/tmp/go \
-                    -v /var/jenkins_home/tools:/var/jenkins_home/tools'''
-        }
-    }
+    agent any
 
     environment {
         SONARQUBE_ENV = 'SonarQube'
@@ -25,27 +16,22 @@ pipeline {
             }
         }
 
-        stage('Setup') {
+        stage('Build and Test') {
+            agent {
+                docker {
+                    image 'golang:1.23-bookworm'
+                    args '-u root -e HOME=/tmp -e GOCACHE=/tmp/go-cache -e GOPATH=/tmp/go'
+                    reuseNode true
+                }
+            }
             steps {
                 sh '''
                     git config --global --add safe.directory ${WORKSPACE}
-                    apt-get update -qq
-                    apt-get install -y -qq default-jre-headless
-                    go version
                     go mod download
+                    go build -v ./...
+                    go test ./... -v -coverprofile=coverage.out
+                    chmod 777 coverage.out
                 '''
-            }
-        }
-
-        stage('Build') {
-            steps {
-                sh 'go build -v ./...'
-            }
-        }
-
-        stage('Test') {
-            steps {
-                sh 'go test ./... -v -coverprofile=coverage.out'
             }
         }
 
